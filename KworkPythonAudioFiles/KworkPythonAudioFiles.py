@@ -3,30 +3,36 @@ import os
 import pandas as pd
 import re
 
-data = pd.read_excel('БАЗА АУДИО.xlsx', sheet_name=0)
-
-#names = open("Names.txt", 'r').readlines()
-#for name in names:
-#	newFile = open(name[0:name.find('.')] + ".mp3", 'w')
-#	newFile.close()
-def getListFromData(nameData):
+def getListFromData(nameData, data):
 	isNotNull = pd.notnull(data[nameData])
-	items = data.loc[isNotNull,nameData]
-	
-	items = [str(item).strip().replace("-", "").replace("(", "").replace(")", "").replace(" ", "") for item in items]
+	size = len(isNotNull)
+	items = []
+	item = 0
+	countRow = 2
 	res = []
-	for item in items:
-		if item.isdigit():
-			res.append(item)
+	for i in range(size):
+		if isNotNull[i]:
+			item = str(data[nameData][i]).strip().replace(" ", "").replace("(", "").replace(")", "").replace("-", "").replace(".0", "").replace("\'", "")
+			item = str(item).strip().replace("+", "")
+			if len(item) == 11 and item.isdigit():
+				res.append(item)
+			else:
+				print('Что-то не так с номером. Строка:', countRow, 'Столбец: ', nameData, 'Номер: ', item)
+
+		countRow += 1
+	
+	##countRow = 2
+	#for item in items:
+	#	if len(item) == 11 and item.isdigit():
+	#		res.append(item)
+	#	else:
+	#		print(type(item))
+	#		print(item.isdigit())
+	#		print('Что-то не так с номером.\nСтрока:', countRow, '\nСтолбец: ', nameData, '\nНомер: ', item)
+	#	countRow += 1
 	return res
 
-currentDir = os.getcwd()
-files = os.listdir(currentDir)
-
-listWithAllDuplicates = list()
-duplicatesAllNumber = []
-
-def MovePhoneNumbersFromFolder(numbers, nameFolder):
+def MovePhoneNumbersFromFolder(numbers, nameFolder, files, currentDir):
 	print("Компания: ", nameFolder)
 
 	logFileName = "Log File %s.txt" % nameFolder
@@ -41,14 +47,21 @@ def MovePhoneNumbersFromFolder(numbers, nameFolder):
 	countNumbersBed = 0
 	isFound = False
 	
-	duplicatesFiles = []
-	duplicatesFilesReport = []
 	lenNumber = len(numbers)
 	countNumbers = 0
 	step = lenNumber // 100
-	percentStep = int(lenNumber / step)
+	isShowPercent = True
 	percentValue = step
 	percent = 0
+	percentStep = 0
+	percent = 101 # 101 потому что если номеров меньше 100, чтобы не выводить проценты
+	if lenNumber >= 100:
+		percentStep = int(lenNumber / step)
+		percent = 0
+
+	duplicatesFiles = []
+	duplicatesFilesReport = []
+
 	for number in numbers:
 		number7or8 = 0
 		if number.find('8') == 0:
@@ -58,10 +71,6 @@ def MovePhoneNumbersFromFolder(numbers, nameFolder):
 		
 		for file in files:
 			if file.find(number) != -1 or file.find(number7or8) != -1:
-				if file.find(number) != -1:
-					duplicatesAllNumber.append(number)
-				else:
-					duplicatesAllNumber.append(number7or8)
 				isFound = True
 				duplicatesFiles.append(file)
 		
@@ -84,11 +93,12 @@ def MovePhoneNumbersFromFolder(numbers, nameFolder):
 			isFound = False
 
 		if countNumbers == percentValue and percent <= 100:
-			print(percent,"%", sep='')
+			print('[','#' * (percent),' ' * (100 - percent),']', end='')
+			print('\r', end='')
 			percent += 1
 			percentValue += step
 		countNumbers += 1
-
+	print()
 
 	if len(duplicatesFilesReport) > 1:
 		try:
@@ -106,46 +116,42 @@ def MovePhoneNumbersFromFolder(numbers, nameFolder):
 
 	logFile.write("План: " + str(len(numbers)) + '\n')
 	logFile.write("Факт: " + str(countNumbersGood) + '\n')
-	if len(numbers) - countNumbersGood >= 0:
-		logFile.write("Не найдено: " + str(countNumbersBed) + '\n')
-	else:
-		logFile.write("Не найдено: " + str(0) + '\n')
-		logFile.write("Дубликаты: " + str(countNumbersGood - len(numbers)) + '\n')
-
+	logFile.write("Не найдено: " + str(countNumbersBed) + '\n')
+	logFile.write("Дублей: " + str(len(duplicatesFilesReport)) + '\n')
 	logFile.close()
-	print("План: ", len(numbers))
-	print("Факт: ", str(countNumbersGood))
-	if len(numbers) - countNumbersGood >= 0:
-		print("Не найдено: ", str(countNumbersBed))
-	else:
-		print("Не найдено: ", 0)
-		print("Дубликаты: ", str(countNumbersBed) - len(numbers))
+
+	print("План: " + str(len(numbers)) + '\n')
+	print("Факт: " + str(countNumbersGood) + '\n')
+	print("Не найдено: " + str(countNumbersBed) + '\n')
+	print("Дублей: " + str(len(duplicatesFilesReport)) + '\n')
+
 	print()
-	#return duplicatesFilesReport
 
-teletel = "Teletel"
-ozon = "OZON"
-colCetre = "Call-Cetre"
-yandexRec = "ЯндексРекрутеры"
-yandexKC = "ЯндексКЦ"
+def main():
+	nameDB = 'БАЗА АУДИО.xlsx'
+	print("Имя файла с БД: " + nameDB)
+	try:
+		data = pd.read_excel('БАЗА АУДИО.xlsx', sheet_name=0)
+	except BaseException:
+		print(input("Что-то с базой..."))
 
-#d = MovePhoneNumbersFromFolder(getListFromData(teletel), "Teletel")
-#d += MovePhoneNumbersFromFolder(getListFromData(ozon), "OZON")
-#d += MovePhoneNumbersFromFolder(getListFromData(colCetre), "Call-Cetre")
-#d += MovePhoneNumbersFromFolder(getListFromData(yandexRec), "ЯндексРекрутеры")
-#d += MovePhoneNumbersFromFolder(getListFromData(yandexKC), "ЯндексКЦ")
+		return
+		print(input())
+	currentDir = os.getcwd()
+	files = os.listdir(currentDir)
+	
+	columnNames = data.columns
 
-numbersTeletel = getListFromData(teletel)
-numbersOzon = getListFromData(ozon)
-numbersColCetre = getListFromData(colCetre)
-numbersYandexRec = getListFromData(yandexRec)
-numbersYandexKC = getListFromData(yandexKC)
+	availableNames = []
+	for name in columnNames:
+		if name.find('Unnamed') == -1:
+			availableNames.append(name)
+	
+	for name in availableNames:
+		numbers = getListFromData(name, data)
+		MovePhoneNumbersFromFolder(numbers, name, files, currentDir)
+	
+	print(input("Программа закончила свою работу. Нажмите Enter"))
 
-MovePhoneNumbersFromFolder(numbersTeletel, "Teletel")
-MovePhoneNumbersFromFolder(numbersOzon, "OZON")
-MovePhoneNumbersFromFolder(numbersColCetre, "Call-Cetre")
-MovePhoneNumbersFromFolder(numbersYandexRec, "ЯндексРекрутеры")
-MovePhoneNumbersFromFolder(numbersYandexKC, "ЯндексКЦ")
-
-print("Exit")
-print(input())
+if __name__ == "__main__":
+    main()
