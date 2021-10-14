@@ -75,6 +75,7 @@ def MovePhoneNumbersFromFolder(numbers, nameFolder, files, currentDir):
 				duplicatesFiles.append(file)
 		
 		if len(duplicatesFiles) > 1:
+			countNumbersGood += 1
 			duplicatesFilesReport += duplicatesFiles
 			duplicatesFiles.clear()
 		elif len(duplicatesFiles) == 1:
@@ -100,30 +101,31 @@ def MovePhoneNumbersFromFolder(numbers, nameFolder, files, currentDir):
 		countNumbers += 1
 	print()
 
+	nameFolderDublicates = nameFolder + " Дубликаты"
 	if len(duplicatesFilesReport) > 1:
 		try:
-			os.mkdir(nameFolder + "\\" + nameFolder + " Дубликаты")
+			os.mkdir(nameFolder + "\\" + nameFolderDublicates)
 		except OSError:
 			print("Создать директорию дубликаты не удалось")
 		else:
 			print("Успешно создана директория дубликаты ")
-		
+		countDublicates = 0
 		for file in duplicatesFilesReport:
-			shutil.copy(currentDir + "\\" + file, currentDir + "\\" + nameFolder + "\\" + nameFolder + " Дубликаты")
+			if os.path.exists(currentDir + "\\" + nameFolder + "\\"  + nameFolderDublicates  + "\\"+ file):
+				countDublicates += 1
+			else:
+				shutil.copy(currentDir + "\\" + file, currentDir + "\\" + nameFolder + "\\" + nameFolderDublicates)
 
-			#if os.path.exists(currentDir + "\\" + file):
-			#	print("Дубликаты: ", file)
-
-	logFile.write("План: " + str(len(numbers)) + '\n')
+	logFile.write("План: " + str(lenNumber) + '\n')
 	logFile.write("Факт: " + str(countNumbersGood) + '\n')
 	logFile.write("Не найдено: " + str(countNumbersBed) + '\n')
-	logFile.write("Дублей: " + str(len(duplicatesFilesReport)) + '\n')
+	logFile.write("Дублей: " + str(len(duplicatesFilesReport) - countDublicates) + '\n')
 	logFile.close()
 
-	print("План: " + str(len(numbers)) + '\n')
+	print("План: " + str(lenNumber) + '\n')
 	print("Факт: " + str(countNumbersGood) + '\n')
 	print("Не найдено: " + str(countNumbersBed) + '\n')
-	print("Дублей: " + str(len(duplicatesFilesReport)) + '\n')
+	print("Дублей: " + str(len(duplicatesFilesReport) - countDublicates) + '\n')
 
 	print()
 
