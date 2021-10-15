@@ -53,11 +53,7 @@ def MovePhoneNumbersFromFolder(numbers, nameFolder, files, currentDir):
 	duplicatesFilesReport = []
 
 	for number in numbers:
-		number7or8 = 0
-		if number.find('8') == 0:
-			number7or8 = re.sub('8', '7', number, 1)
-		else:
-			number7or8 = re.sub('7', '8', number, 1)
+		number7or8 = re.sub('8', '7', number, 1) if number.find('8') == 0 else re.sub('7', '8', number, 1)
 		
 		for file in files:
 			if file.find(number) != -1 or file.find(number7or8) != -1:
