@@ -20,16 +20,6 @@ def getListFromData(nameData, data):
 				print('Что-то не так с номером. Строка:', countRow, 'Столбец: ', nameData, 'Номер: ', item)
 
 		countRow += 1
-	
-	##countRow = 2
-	#for item in items:
-	#	if len(item) == 11 and item.isdigit():
-	#		res.append(item)
-	#	else:
-	#		print(type(item))
-	#		print(item.isdigit())
-	#		print('Что-то не так с номером.\nСтрока:', countRow, '\nСтолбец: ', nameData, '\nНомер: ', item)
-	#	countRow += 1
 	return res
 
 def MovePhoneNumbersFromFolder(numbers, nameFolder, files, currentDir):
@@ -75,6 +65,8 @@ def MovePhoneNumbersFromFolder(numbers, nameFolder, files, currentDir):
 				duplicatesFiles.append(file)
 		
 		if len(duplicatesFiles) > 1:
+			shutil.copy(currentDir + "\\" + duplicatesFiles[0], currentDir + "\\" + nameFolder)
+			duplicatesFiles.remove(duplicatesFiles[0])
 			countNumbersGood += 1
 			duplicatesFilesReport += duplicatesFiles
 			duplicatesFiles.clear()
@@ -102,6 +94,7 @@ def MovePhoneNumbersFromFolder(numbers, nameFolder, files, currentDir):
 	print()
 
 	nameFolderDublicates = nameFolder + " Дубликаты"
+	countDublicates = 0
 	if len(duplicatesFilesReport) > 1:
 		try:
 			os.mkdir(nameFolder + "\\" + nameFolderDublicates)
@@ -109,7 +102,7 @@ def MovePhoneNumbersFromFolder(numbers, nameFolder, files, currentDir):
 			print("Создать директорию дубликаты не удалось")
 		else:
 			print("Успешно создана директория дубликаты ")
-		countDublicates = 0
+		
 		for file in duplicatesFilesReport:
 			if os.path.exists(currentDir + "\\" + nameFolder + "\\"  + nameFolderDublicates  + "\\"+ file):
 				countDublicates += 1
@@ -131,9 +124,10 @@ def MovePhoneNumbersFromFolder(numbers, nameFolder, files, currentDir):
 
 def main():
 	nameDB = 'БАЗА АУДИО.xlsx'
+	#nameDB = '1.xlsx'
 	print("Имя файла с БД: " + nameDB)
 	try:
-		data = pd.read_excel('БАЗА АУДИО.xlsx', sheet_name=0)
+		data = pd.read_excel(nameDB, sheet_name=0)
 	except BaseException:
 		print(input("Что-то с базой..."))
 
